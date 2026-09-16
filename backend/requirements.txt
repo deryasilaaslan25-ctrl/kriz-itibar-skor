@@ -1,0 +1,72 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+# ^ Linux'ta (Render/Docker) `pip install torch` VARSAYILAN olarak CUDA'lı dev
+# boyutlu wheel'i indirir (birkaç GB) — GPU'suz bir sunucuda bu tamamen
+# gereksizdir ve ücretsiz/küçük planlarda build'in disk/süre sınırlarını
+# aşmasına yol açabilir. Bu satır, aynı `torch==...` pini için PyTorch'un
+# resmi CPU-only index'ini de arama kapsamına ekler; pip local sürüm
+# önceliklendirmesi (PEP 440) gereği +cpu varyantını otomatik seçer
+# (~200MB), işlevsellikte hiçbir kayıp olmaz (Render'da zaten GPU yok).
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+pydantic==2.10.4
+pydantic-settings==2.7.1
+psycopg2-binary==2.9.10
+redis==5.2.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1               # passlib 1.7.4, bcrypt>=4.1'de kaldırılan __about__.__version__'e bağımlı olduğu için
+                             # "password cannot be longer than 72 bytes" çalışma zamanı hatası veriyordu (gerçek
+                             # çalıştırmada bulundu, bkz. GUNCELLEME_NOTLARI_v3.md) — 4.0.1 ile uyumluluk sağlandı.
+python-multipart==0.0.20
+httpx==0.28.1
+scikit-learn==1.6.0
+scipy==1.14.1                # scikit-learn'ün örtük bağımlılığıydı; Benford Kanunu ki-kare testi (bot_detection.py) doğrudan kullandığı için artık açıkça pinlendi
+numpy==2.2.1
+pandas==2.2.3
+slowapi==0.1.9             # Rate limiting (Bölüm 17 — güvenlik)
+prometheus-client==0.21.1  # /metrics uç noktası (Bölüm 16 — izleme)
+
+# Test
+pytest==8.3.4
+pytest-cov==6.0.0           # Coverage raporu (Bölüm 20/21)
+respx==0.22.0                # httpx mock (Anthropic/Twitter gibi anahtar-korumalı API'leri test etmek için)
+
+# --- Faz 1-9 (2026-08): gerçekten kurulup çalıştırılan / test edilen entegrasyonlar ---
+feedparser==6.0.11          # Google News RSS toplama — anahtarsız, gerçekten kullanılıyor (Faz 6)
+pytrends==4.9.2             # Google Trends toplama — anahtarsız, gerçekten kullanılıyor (Faz 6)
+# NOT: Reddit için PRAW KASITLI OLARAK eklenmedi — PRAW OAuth (client id/secret)
+# gerektirir ve kullanıcının bu anahtarı yok. Bunun yerine RedditCollector,
+# Reddit'in kimlik doğrulama gerektirmeyen genel `.json` uçlarını (httpx ile,
+# zaten üstteki httpx bağımlılığıyla) kullanır — bkz. app/collectors/connectors.py.
+transformers==4.47.1        # BERTurk duygu analizi + mDeBERTa zero-shot ABSA (Faz 3, Faz 4)
+torch==2.7.1                # transformers'ın çalışması için gerekli (CPU sürümü yeterli; 2.5.1 Python 3.13 wheel'i yok, bu ortamda 2.7.1 kullanıldı)
+sentencepiece==0.2.2        # mDeBERTa tokenizer bağımlılığı (0.2.0'ın Python 3.13 win_amd64 wheel'i yok, kaynaktan derleme cmake/protoc gerektiriyordu -> 0.2.2'ye çıkarıldı)
+xgboost==2.1.3               # Risk sınıflandırması, rule-engine'den damıtılmış veriyle eğitiliyor (Faz 7)
+shap==0.52.0                  # XGBoost model açıklanabilirliği (Faz 7; 0.46.0'ın Python 3.13 win_amd64 wheel'i yok, kaynak derlemesi MSVC Build Tools istiyordu -> 0.52.0'a çıkarıldı)
+qdrant-client==1.12.1       # Vektör veritabanı — bağlanılamazsa numpy in-memory fallback (Faz 7)
+elasticsearch==8.17.0        # Tam metin arama — bağlanılamazsa PostgreSQL fallback (Faz 7)
+celery==5.4.0                 # Redis tabanlı görev kuyruğu (Faz 7 — Redis/Docker olmadan da senkron uç çalışır)
+jinja2==3.1.5                 # PDF rapor şablonu (Faz 5)
+weasyprint==63.1              # HTML -> PDF dönüştürme (Faz 5)
+
+prophet==1.3.0                # Kriz büyüme tahmini (Bölüm 6) — BAŞARIYLA KURULDU VE TEST EDİLDİ
+                               # (1.1.6 yerine 1.3.0: Windows'ta prebuilt cmdstan wheel'iyle geliyor,
+                               # ayrı bir C++ derleyici zinciri gerekmedi — bkz. forecasting.py)
+
+# --- Faz 10 (2026-08): YouTube veri toplama + çok dilli duygu analizi ---
+yt-dlp==2025.1.15             # YouTube arama + video + yorum toplama — ANAHTARSIZ (bkz. YouTubeCollector).
+                               # NOT: kasıtlı olarak google-api-python-client eklenmedi; kullanıcının
+                               # YOUTUBE_API_KEY'i yoksa bu paket TEK BAŞINA arama+yorum toplamayı sağlar.
+                               # Resmi YouTube Data API v3 yolu (YOUTUBE_API_KEY tanımlıysa) zaten kurulu
+                               # olan httpx ile çağrılır, ek bağımlılık gerektirmez.
+langdetect==1.0.9             # Çok dilli duygu analizi için dil tespiti — anahtarsız, tamamen çevrimdışı
+                               # (Google'ın eski "language-detection" kütüphanesinin Python portu; bkz.
+                               # app/services/dil_tespit.py). transformers/torch zaten kurulu olduğundan
+                               # ek bir ağır bağımlılık YARATMAZ.
+
+# --- Denendi, ortam kısıtı nedeniyle opsiyonel/soft-dependency kalanlar ---
+# bertopic: sentence-transformers (yukarıda örtük olarak transformers ile gelir)
+# + umap-learn + hdbscan gerektirir; app/services/topic_modeling.py zaten
+# ABSA (Faz 3) ile 5 akademik boyuta + ~20 alt-türe ayrıştırma sağladığı için
+# BERTopic bu sürümde devre dışı bırakıldı — istenirse ayrıca eklenebilir.

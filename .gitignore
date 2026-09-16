@@ -1,0 +1,33 @@
+# Sırlar
+backend/.env
+*.env
+!*.env.example
+
+# Python
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.egg-info/
+backend/.pytest_cache/
+backend/venv/
+backend/.venv/
+backend/itibar_dev.db
+backend/app/ml/models/*.json
+backend/app/ml/models/*.pkl
+backend/htmlcov/
+backend/.coverage
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# HuggingFace / ML model önbelleği (indirilen ağırlıklar repoya girmemeli)
+backend/.hf_cache/
+backend/.cache/
+
+# OS / editör
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+backend/test_rapor.pdf

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Kurumsal Kriz Müdahale Raporu — {{ rapor.kurum_adi }}</title>
+<style>
+    @page { size: A4; margin: 2.2cm 1.8cm; }
+    body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 10.5pt; color: #1a1f2b; line-height: 1.5; }
+    h1 { font-size: 18pt; color: #0f172a; margin-bottom: 2pt; }
+    h2 { font-size: 13pt; color: #0f172a; border-bottom: 1.5pt solid #cbd5e1; padding-bottom: 4pt; margin-top: 22pt; }
+    h3 { font-size: 11pt; color: #1e293b; margin-bottom: 3pt; }
+    .ust-bilgi { color: #475569; font-size: 9pt; margin-bottom: 14pt; }
+    .etiket { display: inline-block; background: #f1f5f9; border: 1pt solid #cbd5e1; border-radius: 4pt;
+              padding: 2pt 8pt; font-size: 8.5pt; color: #334155; margin-right: 6pt; }
+    .risk-kritik { color: #b91c1c; font-weight: bold; }
+    .risk-yuksek { color: #c2410c; font-weight: bold; }
+    .risk-orta { color: #a16207; font-weight: bold; }
+    .risk-dusuk { color: #15803d; font-weight: bold; }
+    .kutu { background: #f8fafc; border: 1pt solid #e2e8f0; border-radius: 6pt; padding: 10pt 14pt; margin: 8pt 0; }
+    .kaynak { font-style: italic; color: #64748b; font-size: 9pt; }
+    .plan-adimi { margin-bottom: 10pt; }
+    .plan-baslik { font-weight: bold; color: #0f172a; }
+    ul { margin: 4pt 0 4pt 0; padding-left: 16pt; }
+    li { margin-bottom: 2pt; }
+    .kanal { margin-bottom: 12pt; page-break-inside: avoid; }
+    .kanal-baslik { font-weight: bold; }
+    .kanal-metin { background: #ffffff; border-left: 3pt solid #64748b; padding: 6pt 10pt; margin-top: 3pt; white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6pt; }
+    th, td { text-align: left; padding: 5pt 8pt; border-bottom: 0.75pt solid #e2e8f0; font-size: 9.5pt; }
+    th { color: #475569; font-weight: bold; }
+    .altbilgi { margin-top: 26pt; padding-top: 8pt; border-top: 0.75pt solid #cbd5e1; font-size: 8pt; color: #94a3b8; }
+    .metodoloji { font-size: 8.5pt; color: #64748b; background: #f8fafc; padding: 8pt 12pt; border-radius: 6pt; margin-top: 6pt; }
+</style>
+</head>
+<body>
+    <h1>Kurumsal Kriz Müdahale Raporu</h1>
+    <div class="ust-bilgi">
+        {{ rapor.kurum_adi }} &middot; Oluşturulma: {{ rapor.olusturma_tarihi }} &middot;
+        Kriz: “{{ rapor.kriz_baslik }}” &middot; Konu: {{ rapor.kriz_konusu }}
+    </div>
+    <div>
+        <span class="etiket">Risk Skoru: {{ rapor.risk_skoru }}/100</span>
+        <span class="etiket risk-{{ 'kritik' if rapor.risk_seviyesi == 'Kritik Risk' else ('yuksek' if rapor.risk_seviyesi == 'Yüksek Risk' else ('orta' if rapor.risk_seviyesi == 'Orta Risk' else 'dusuk')) }}">{{ rapor.risk_seviyesi }}</span>
+    </div>
+
+    <h2>1. Teorik Kriz Teşhisi ve Sorumluluk Analizi</h2>
+    <div class="kutu">
+        <p>{{ rapor.teorik_teshis }}</p>
+        <h3>Önerilen Spesifik Taktik: {{ rapor.spesifik_strateji_adi }}</h3>
+        <p>{{ rapor.spesifik_strateji_aciklama }}</p>
+        <p class="kaynak">Akademik kaynak: {{ rapor.spesifik_strateji_kaynak }}</p>
+        {% if rapor.alternatif_stratejiler %}
+        <p><strong>Alternatif taktikler:</strong> {{ rapor.alternatif_stratejiler | join(', ') }}</p>
+        {% endif %}
+    </div>
+
+    <h2>2. 72 Saatlik Operasyonel Hİ Eylem Planı</h2>
+    {% for adim in rapor.operasyonel_plan %}
+    <div class="plan-adimi">
+        <div class="plan-baslik">{{ adim.zaman_araligi }} — {{ adim.baslik }}</div>
+        <ul>
+            {% for a in adim.adimlar %}<li>{{ a }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+
+    <h2>3. Kanal Bazlı Taslak İletişim Metinleri</h2>
+    {% for k in rapor.kanal_taslaklari %}
+    <div class="kanal">
+        <div class="kanal-baslik">{{ k.kanal }} <span class="kaynak">({{ k.ton }})</span></div>
+        <div class="kanal-metin">{{ k.metin }}</div>
+    </div>
+    {% endfor %}
+
+    <h2>4. Paydaş Etki ve İletişim Haritası</h2>
+    <table>
+        <tr><th>Paydaş</th><th>Taktik</th></tr>
+        {% for p in rapor.paydas_haritasi %}
+        <tr><td>{{ p.paydas }}</td><td>{{ p.taktik }}</td></tr>
+        {% endfor %}
+    </table>
+
+    {% if rapor.llm_destekli_metin %}
+    <h2>5. Yapay Zeka Danışman Notu (Anthropic Claude Destekli)</h2>
+    <div class="kutu kanal-metin">{{ rapor.llm_destekli_metin }}</div>
+    {% endif %}
+
+    <div class="metodoloji"><strong>Metodoloji notu:</strong> {{ rapor.metodoloji_notu }}</div>
+
+    <div class="altbilgi">
+        Bu rapor, Erken İtibar Krizi Tespit ve Önleyici Karar Destek Sistemi tarafından
+        otomatik olarak üretilmiştir. Yayınlanmadan önce mutlaka kurum içi hukuk/iletişim
+        onayından geçirilmelidir. Kaynakça için CITATIONS.md dosyasına bakınız.
+    </div>
+</body>
+</html>

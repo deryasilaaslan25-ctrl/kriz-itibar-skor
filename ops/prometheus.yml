@@ -1,0 +1,11 @@
+# Bölüm 16: Merkezi izleme yapılandırması.
+# Backend'in /api/saglik uç noktasını ve (üretimde eklenecek) /metrics
+# uç noktasını periyodik olarak toplar.
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "itibar-backend"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8000"]
