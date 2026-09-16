@@ -119,3 +119,6 @@ def metrikler():
             "durum": "prometheus_client_kurulu_degil",
             "not": "Üretimde `pip install prometheus-client` ile tam metrik desteği etkinleştirilmelidir.",
         }
+@app.get("/")
+def read_root():
+    return {"status": "ok", "message": "Backend aktif"}
