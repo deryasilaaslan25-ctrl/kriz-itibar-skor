@@ -122,3 +122,10 @@ def metrikler():
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Backend aktif"}
+@app.post("/api/auth/giris")
+def auth_giris(data: dict | None = None):
+    return {
+        "status": "success",
+        "access_token": "demo-token-123",
+        "message": "Giriş başarılı"
+    }
